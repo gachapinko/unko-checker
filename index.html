@@ -332,6 +332,24 @@ function saveData(y, m, data) {
   localStorage.setItem(storageKey(y, m), JSON.stringify(data));
 }
 
+function playPoopSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  const t = ctx.currentTime;
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(140, t);
+  osc.frequency.linearRampToValueAtTime(420, t + 0.07);
+  osc.frequency.exponentialRampToValueAtTime(75, t + 0.38);
+  gain.gain.setValueAtTime(0.7, t);
+  gain.gain.setValueAtTime(0.7, t + 0.06);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+  osc.start(t);
+  osc.stop(t + 0.45);
+}
+
 function recordPoop() {
   const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
   const data = getData(y, m);
@@ -341,6 +359,7 @@ function recordPoop() {
   doSquish();
   doRain();
   doFlash();
+  playPoopSound();
 }
 
 function doSquish() {
