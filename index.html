@@ -422,6 +422,8 @@ function renderCalendar() {
   document.getElementById('calGrid').innerHTML = html;
 }
 
+const RAIN_SRCS = [TINY_SRC, 'blue.PNG', 'green.PNG', 'purple.PNG'];
+
 function doRain() {
   const container = document.getElementById('rainContainer');
   const count = 22;
@@ -435,7 +437,7 @@ function doRain() {
       el.style.left = left + 'vw';
       el.style.animationDuration = dur + 's';
       const img = document.createElement('img');
-      img.src = TINY_SRC;
+      img.src = RAIN_SRCS[Math.floor(Math.random() * RAIN_SRCS.length)];
       img.style.width = size + 'px';
       img.style.height = size + 'px';
       el.appendChild(img);
