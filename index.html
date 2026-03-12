@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>💩 うんこきろく</title>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&family=Cinzel&display=swap" rel="stylesheet">
 <style>
 :root {
   --pink: #FFB7D5;
@@ -14,6 +14,7 @@
   --yellow: #FFF3B0;
   --mint: #C8F0E4;
   --shadow: rgba(255,105,180,0.25);
+  --gold: #c8962a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -29,15 +30,48 @@ header {
   padding: 24px 16px 8px;
 }
 header h1 {
-  font-size: 1.8rem;
-  font-weight: 900;
+  margin-top: 28px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-align: center;
   background: linear-gradient(90deg, #e8a0bf, #b39ddb, #81c8e8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: none;
-  filter: drop-shadow(0 2px 0 rgba(210,170,230,0.35));
-  letter-spacing: 2px;
+  filter: drop-shadow(0 2px 0 rgba(210, 170, 230, 0.35));
+}
+
+/* ゲージ */
+.gauge-wrap {
+  width: 160px;
+  margin: 10px auto 0;
+}
+.gauge-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+.gauge-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 150, 42, 0.3);
+  position: relative;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e8a0bf, #b39ddb, #81c8e8);
+  box-shadow: 0 0 6px rgba(220, 170, 80, 0.5);
+  transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+  width: 0%;
 }
 header p.sub {
   font-size: 0.75rem;
@@ -233,6 +267,30 @@ header p.sub {
   line-height: 1.3;
 }
 
+/* 特大うんこ */
+.big-poop {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 10000;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 24px rgba(180,100,0,0.4));
+  animation: bigPoopFall 2.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+}
+@keyframes bigPoopFall {
+  0%   { transform: translateX(-50%) translateY(-160px) scale(1) rotate(-8deg); opacity: 1; }
+  45%  { transform: translateX(-50%) translateY(38vh) scale(1) rotate(10deg); opacity: 1; }
+  52%  { transform: translateX(-50%) translateY(46vh) scaleX(1.45) scaleY(0.52) rotate(0deg); opacity: 1; }
+  60%  { transform: translateX(-50%) translateY(18vh) scale(1.05) rotate(-6deg); opacity: 1; }
+  68%  { transform: translateX(-50%) translateY(46vh) scaleX(1.2) scaleY(0.78) rotate(0deg); opacity: 1; }
+  74%  { transform: translateX(-50%) translateY(32vh) scale(1) rotate(3deg); opacity: 1; }
+  80%  { transform: translateX(-50%) translateY(46vh) scaleX(1.07) scaleY(0.93) rotate(0deg); opacity: 1; }
+  86%  { transform: translateX(-50%) translateY(40vh) scale(1); opacity: 1; }
+  90%  { transform: translateX(-50%) translateY(46vh) scale(1); opacity: 1; }
+  95%  { transform: translateX(-50%) translateY(46vh) scale(1); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(46vh) scale(0.85); opacity: 0; }
+}
+
 /* レインアニメ */
 .rain-container {
   position: fixed;
@@ -285,11 +343,12 @@ header p.sub {
 <body>
 
 <header>
-  <h1>💩 うんこきろく 💩</h1>
-  <p class="sub">✨ まいにちのうんこをきろくしよう ✨</p>
+  <h1>✦ UNKO CHECKER ✦</h1>
+  <div class="gauge-wrap">
+    <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill"></div></div>
+  </div>
 </header>
 
-<div class="deco">🌸 ⭐ 🌸 ⭐ 🌸</div>
 
 <div class="hero">
   <button class="poop-btn" id="poopBtn" onclick="recordPoop()">
@@ -333,8 +392,10 @@ function saveData(y, m, data) {
   localStorage.setItem(storageKey(y, m), JSON.stringify(data));
 }
 
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
 function playPoopSound() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const ctx = audioCtx;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);
@@ -351,12 +412,37 @@ function playPoopSound() {
   osc.stop(t + 0.45);
 }
 
+let pressCount = parseInt(localStorage.getItem('poop_press_count') || '0');
+
+function updateGauge() {
+  const pct = (pressCount % 100) / 100 * 100;
+  document.getElementById('gaugeFill').style.width = pct + '%';
+}
+
+function doBigPoop() {
+  const el = document.createElement('div');
+  el.className = 'big-poop';
+  const img = document.createElement('img');
+  img.src = 'purple.PNG';
+  img.style.width = '300px';
+  img.style.height = '300px';
+  el.appendChild(img);
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
 function recordPoop() {
   const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
   const data = getData(y, m);
   data[d] = (data[d] || 0) + 1;
   saveData(y, m, data);
+  pressCount++;
+  localStorage.setItem('poop_press_count', pressCount);
+  if (pressCount % 100 === 0) {
+    doBigPoop();
+  }
   renderCalendar();
+  updateGauge();
   doSquish();
   doRain();
   doFlash();
@@ -462,6 +548,7 @@ function doFlash() {
 viewYear = now.getFullYear();
 viewMonth = now.getMonth() + 1;
 renderCalendar();
+updateGauge();
 </script>
 </body>
 </html>
